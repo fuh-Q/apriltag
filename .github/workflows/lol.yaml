@@ -1,0 +1,67 @@
+name: Build and Publish Wheels
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+
+    steps:
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.8
+
+    - name: Install dependencies
+      run: |
+        if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+          sudo apt-get install -y python3-dev  # Install Python development headers
+        elif [ "${{ matrix.os }}" == "windows-latest" ]; then
+          choco install python --version 3.8
+        fi
+        pip install wheel
+
+    - name: Build and package C extensions
+      run: |
+        python setup.py sdist bdist_wheel
+
+    - name: Upload wheels
+      uses: actions/upload-artifact@v4
+      with:
+        name: wheel-${{ matrix.os }}
+        path: dist
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download wheels
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+          path: dist
+      - name: Create release
+        id: release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: maze
+          name: "maze"
+          commit: main
+          makeLatest: true
+          allowUpdates: true
+          removeArtifacts: true
+          artifacts: dist/*.whl
+      - name: Release URL
+        run: |
+          echo "Release URL: ${{ steps.release.outputs.html_url }}"
