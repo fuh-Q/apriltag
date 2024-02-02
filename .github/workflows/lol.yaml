@@ -10,26 +10,19 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        os:
-          - ubuntu-latest
-          - windows-latest
-          - macos-latest
-
     steps:
     - name: Set up Python
       uses: actions/setup-python@v3
       with:
-        python-version: 3.8
+        python-version: 3.10
+
+    - name: Choco help
+      uses: crazy-max/ghaction-chocolatey@v3
+      with:
+        args: python --version 3.10
 
     - name: Install dependencies
       run: |
-        if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-          sudo apt-get install -y python3-dev  # Install Python development headers
-        elif [ "${{ matrix.os }}" == "windows-latest" ]; then
-          choco install python --version 3.8
-        fi
         pip install wheel
 
     - name: Build and package C extensions
@@ -39,7 +32,7 @@ jobs:
     - name: Upload wheels
       uses: actions/upload-artifact@v4
       with:
-        name: wheel-${{ matrix.os }}
+        name: wheel-windows
         path: dist
 
   release:
