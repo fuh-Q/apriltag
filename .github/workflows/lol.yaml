@@ -19,7 +19,7 @@ jobs:
     - name: Choco help
       uses: crazy-max/ghaction-chocolatey@v3
       with:
-        args: python --version 3.10
+        args: install python --version=3.10.0
 
     - name: Install dependencies
       run: |
